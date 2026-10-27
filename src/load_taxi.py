@@ -1,15 +1,27 @@
-import pyarrow.parquet as pq
-import pandas as pd
-from sqlalchemy import create_engine
 import os
+
+import pyarrow.parquet as pq
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.engine import URL
+
+load_dotenv()
 
 # Configuration
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PARQUET_FILE = os.path.join(BASE_DIR, 'data/raw/yellow_tripdata_2025-01.parquet')
 BATCH_SIZE = 100000
 
-# Change '0000' to your actual database password if different
-engine = create_engine('postgresql://taxi_analyst:0000@localhost:5432/nyc_taxi_db')
+engine = create_engine(
+    URL.create(
+        "postgresql",
+        username=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        host=os.getenv("DB_HOST", "localhost"),
+        port=int(os.getenv("DB_PORT", "5432")),
+        database=os.getenv("DB_NAME", "nyc_taxi_db"),
+    )
+)
 
 print("🚀 Starting chunked load from Parquet to PostgreSQL...")
 
